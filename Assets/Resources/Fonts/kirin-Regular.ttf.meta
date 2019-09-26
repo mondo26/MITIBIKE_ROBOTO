@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 5b3f924c13c93164789406e2d4b92f83
+timeCreated: 1568821622
+licenseType: Free
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: 002kirin
+  fontNames:
+  - 002kirin
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
