@@ -65,6 +65,7 @@ public class PlayerController : MonoBehaviour
     private float jumpTimer, totalTimer;
     private float lifeTime;
     private bool isGround;
+    private int iCount;
 
     public StageMgr _StageMgr { set { stageMgr = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
@@ -90,6 +91,7 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void Update()
     {
+
         this.horizontal = Input.GetAxis("Horizontal");
         this.vertical = Input.GetAxis("Vertical");
 
@@ -206,7 +208,8 @@ public class PlayerController : MonoBehaviour
         if (xboxButton["Y"])
         {
             StopMove();                                         
-            xboxButton["Y"] = false;                        
+            xboxButton["Y"] = false;
+            return;
         }
 
         //this.totalTimer += Time.deltaTime;                                                               // total時間計測
@@ -371,6 +374,7 @@ public class PlayerController : MonoBehaviour
         // 地上に着いたらisGroundをTRUE
         if (!isGround)
         {
+            Debug.LogError("地面に着きました");
             this.isGround = true;
         }
 
@@ -378,7 +382,7 @@ public class PlayerController : MonoBehaviour
         {
             playerState = PLAYER_STATE._MOVE;
             this.jumpTimer = 0;
-            Debug.LogError("空中でぶつかりました");
+            //Debug.LogError("空中でぶつかりました");
         }
 
     }
@@ -388,8 +392,34 @@ public class PlayerController : MonoBehaviour
         // 地上を離れたらisGroundをFALSE
         if (isGround)
         {
-            rigidBody.velocity = Vector3.zero;
-            this.isGround = false;
+            List<Ray> groundRays = new List<Ray>();
+            groundRays.Add(new Ray(transform.position + new Vector3(0, -0.1f, 0), transform.up * -1));
+            groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, 0.4f), transform.up * -1));
+            groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, -0.4f), transform.up * -1));
+            groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, 0.4f), transform.up * -1));
+            groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, -0.4f), transform.up * -1));
+
+            for (int i = 0; i < groundRays.Count; i++)
+            {
+                if (Physics.Raycast(groundRays[i], 0.1f))
+                {
+                    break;   
+                }
+                else
+                {
+                    this.iCount++;
+                }
+                Debug.DrawRay(groundRays[i].origin, groundRays[i].direction * 0.1f, Color.red);
+            }
+
+            if(iCount == groundRays.Count)
+            {
+                Debug.Log("ジャンプ中");
+                rigidBody.velocity = Vector3.zero;
+                this.isGround = false;
+            }
+
+            this.iCount = 0;
         }
     }
 }
