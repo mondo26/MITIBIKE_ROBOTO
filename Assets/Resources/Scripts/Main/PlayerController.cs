@@ -91,7 +91,7 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void Update()
     {
-
+        IsGroundRay();
         this.horizontal = Input.GetAxis("Horizontal");
         this.vertical = Input.GetAxis("Vertical");
 
@@ -365,6 +365,22 @@ public class PlayerController : MonoBehaviour
         Destroy(GetComponent<PlayerController>());              // このコンポーネント削除
     }
 
+    bool IsGroundRay()
+    {
+        List<Ray> groundRays = new List<Ray>();
+        groundRays.Add(new Ray(transform.position + new Vector3(0, -0.1f, 0), transform.up * -1));
+        groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, 0.4f), transform.up * -1));
+        groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, -0.4f), transform.up * -1));
+        groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, 0.4f), transform.up * -1));
+        groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, -0.4f), transform.up * -1));
+
+        for(int i = 0; i < groundRays.Count; i++)
+        {
+            Debug.DrawRay(groundRays[i].origin, groundRays[i].direction * 0.1f, Color.red);
+        }
+        return true;
+    }
+
     /*******************************************************************
      * *　衝突判定
      * *****************************************************************/
@@ -374,7 +390,7 @@ public class PlayerController : MonoBehaviour
         // 地上に着いたらisGroundをTRUE
         if (!isGround)
         {
-            Debug.LogError("地面に着きました");
+            //Debug.LogError("地面に着きました");
             this.isGround = true;
         }
 
@@ -387,39 +403,18 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        
+    }
+
     private void OnTriggerExit(Collider other)
     {
         // 地上を離れたらisGroundをFALSE
         if (isGround)
         {
-            List<Ray> groundRays = new List<Ray>();
-            groundRays.Add(new Ray(transform.position + new Vector3(0, -0.1f, 0), transform.up * -1));
-            groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, 0.4f), transform.up * -1));
-            groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, -0.4f), transform.up * -1));
-            groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, 0.4f), transform.up * -1));
-            groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, -0.4f), transform.up * -1));
-
-            for (int i = 0; i < groundRays.Count; i++)
-            {
-                if (Physics.Raycast(groundRays[i], 0.1f))
-                {
-                    break;   
-                }
-                else
-                {
-                    this.iCount++;
-                }
-                Debug.DrawRay(groundRays[i].origin, groundRays[i].direction * 0.1f, Color.red);
-            }
-
-            if(iCount == groundRays.Count)
-            {
-                Debug.Log("ジャンプ中");
-                rigidBody.velocity = Vector3.zero;
-                this.isGround = false;
-            }
-
-            this.iCount = 0;
+            rigidBody.velocity = Vector3.zero;
+            this.isGround = false;
         }
     }
 }
