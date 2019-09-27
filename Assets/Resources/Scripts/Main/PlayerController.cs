@@ -5,8 +5,6 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    private const int MAX_OPERATING_TIME = 10;                              // ロボットの稼働時間の最大値
-    private const int MAX_OPERATING_TIME_FPS = MAX_OPERATING_TIME * 60;     // ロボットの稼働時間（フレーム単位）
     private const float RAY_LENGTH = 1.5f;                                  // レイを放つ距離
     private const int MIN_STAGE_POS = -10;                                  // ステージの最小座標（画面外）
 
@@ -37,6 +35,8 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField, Header("歩く速度")]
     private float walkSpeed;
+    [SerializeField, Header("ロボットの稼働時間の最大値")]
+    private int MAX_OPERATING_TIME = 10;
     [SerializeField, Header("ロボットを追従するカメラ(三人称カメラの時に使用)")]
     private GameObject rayHitCamera;
     [SerializeField, Header("一人称カメラ")]
@@ -65,13 +65,15 @@ public class PlayerController : MonoBehaviour
     private float jumpTimer, totalTimer;
     private float lifeTime;
     private bool isGround;
-    private int iCount;
+
+    private int MAX_OPERATING_TIME_FPS;                                     // ロボットの稼働時間（フレーム単位）
 
     public StageMgr _StageMgr { set { stageMgr = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
 
     void Start ()
     {
+        this.MAX_OPERATING_TIME_FPS =  MAX_OPERATING_TIME * 60;            // ロボットの稼働時間（フレーム単位変換）
         this.lifeTime = MAX_OPERATING_TIME_FPS;
         this.rigidBody = GetComponent<Rigidbody>();
         this.animator = GetComponent<Animator>();
@@ -390,15 +392,14 @@ public class PlayerController : MonoBehaviour
         // 地上に着いたらisGroundをTRUE
         if (!isGround)
         {
-            //Debug.LogError("地面に着きました");
             this.isGround = true;
         }
 
+        // ジャンプ中にオブジェクトにぶつかったら、落下する
         if(playerState == PLAYER_STATE._JUMP && jumpTimer >= 0.5f)
         {
             playerState = PLAYER_STATE._MOVE;
             this.jumpTimer = 0;
-            //Debug.LogError("空中でぶつかりました");
         }
 
     }
