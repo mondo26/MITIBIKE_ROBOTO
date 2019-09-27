@@ -406,6 +406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 200
+  MAX_OPERATING_TIME: 10
   rayHitCamera: {fileID: 0}
   firstPersonCamera: {fileID: 0}
   thirdPersonCamera: {fileID: 0}
