@@ -19,7 +19,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4511464573364862}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: PreCameraPos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -35,7 +35,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4464228124247256}
   - component: {fileID: 114146448427665440}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ThirdPersonCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,7 +53,7 @@ GameObject:
   - component: {fileID: 223059411200438310}
   - component: {fileID: 114921580472420236}
   - component: {fileID: 114105146654490584}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -70,7 +70,7 @@ GameObject:
   - component: {fileID: 224320800537484888}
   - component: {fileID: 222690376328563374}
   - component: {fileID: 114964554354274016}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Gauge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 4661624043843958}
   - component: {fileID: 33852626609151704}
   - component: {fileID: 23248830248943334}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube.002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,7 +103,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4189084028699056}
   - component: {fileID: 137964231514527208}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube.000
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +120,7 @@ GameObject:
   - component: {fileID: 224027908443534294}
   - component: {fileID: 222474813548065970}
   - component: {fileID: 114025004352522446}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BackGround
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -136,7 +136,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4449789329522584}
   - component: {fileID: 137610084656136748}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cube.001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -158,7 +158,7 @@ GameObject:
   - component: {fileID: 136791107259417522}
   - component: {fileID: 136346962808839706}
   - component: {fileID: 65873287788630432}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player02
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -173,7 +173,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 224761814733219418}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GaugeUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191,7 +191,7 @@ GameObject:
   - component: {fileID: 20508976151423146}
   - component: {fileID: 124125843597744554}
   - component: {fileID: 114246502101527456}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: RayHitCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -536,6 +536,9 @@ MonoBehaviour:
   thirdPersonCamera: {fileID: 1111644158050682}
   UI: {fileID: 1192540730298586}
   gauge: {fileID: 1368701175926016}
+  jumpLayerMask:
+    serializedVersion: 2
+    m_Bits: 1280
   walkSpeed: 200
   MAX_OPERATING_TIME: 10
   jumpSpeed: 0.5

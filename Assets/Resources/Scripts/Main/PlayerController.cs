@@ -41,6 +41,8 @@ public class PlayerController : MonoBehaviour
     private GameObject UI;
     [SerializeField, Header("ロボットのゲージ画像")]
     private GameObject gauge;
+    [SerializeField, Header("ジャンプできるか調べるレイヤー")]
+    private LayerMask jumpLayerMask;
     [SerializeField, Header("歩く速度")]
     private float walkSpeed;
     [SerializeField, Header("ロボットの稼働時間の最大値")]
@@ -147,12 +149,12 @@ public class PlayerController : MonoBehaviour
         // Rayを生成
         this.ray = new Ray(transform.position + Vector3.up / 2, transform.forward);
         this.upRay = new Ray(transform.position + Vector3.up * 2, transform.forward);
-        // Rayを視覚的に描画
-        Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
-        Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
+        //// Rayを視覚的に描画
+        //Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
+        //Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
 
         // ロボットの前方にあるRayがHitし、ロボットの上方にあるRayがHitしていなければ
-        if (Physics.Raycast(ray, out rayHit, RAY_LENGTH) && !Physics.Raycast(upRay, RAY_LENGTH))
+        if (Physics.Raycast(ray, out rayHit, RAY_LENGTH, jumpLayerMask) && !Physics.Raycast(upRay, RAY_LENGTH))
         {
             if (Input.GetButtonDown("PAD_B_BUTTON"))
             {
@@ -203,10 +205,10 @@ public class PlayerController : MonoBehaviour
 
         if (horizontal != 0 || vertical != 0)
         {
-            this.moveDirection = cameraDirection * vertical + rayHitCamera.transform.right * horizontal;                    // 方向キーの入力値とカメラの向きから、移動方向を決定
-            this.AniState = ANIMATION_STATE._WALK_ANIMATION;
+            this.moveDirection = (cameraDirection * vertical + rayHitCamera.transform.right * horizontal).normalized;
+            transform.rotation = Quaternion.LookRotation(moveDirection);                                                    // キャラクターの向きを進行方向に
             this.moveDirection *= walkSpeed;
-            transform.rotation = Quaternion.LookRotation(moveDirection);            // キャラクターの向きを進行方向に
+            this.AniState = ANIMATION_STATE._WALK_ANIMATION;
         }
         else
         {
@@ -329,17 +331,11 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        
-    }
-
     private void OnTriggerExit(Collider other)
     {
         // 地上を離れたらisGroundをFALSE
         if (isGround)
         {
-            Debug.Log(moveDirection.magnitude);
             this.isGround = false;
         }
     }
