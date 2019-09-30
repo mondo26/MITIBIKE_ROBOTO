@@ -33,18 +33,18 @@ public class PlayerController : MonoBehaviour
         _JUMP,
     };
 
+    [SerializeField, Header("ロボットを追従するカメラ(三人称カメラの時に使用)")]
+    private GameObject rayHitCamera;
+    [SerializeField, Header("三人称カメラ")]
+    private GameObject thirdPersonCamera;
+    [SerializeField, Header("UI")]
+    private GameObject UI;
+    [SerializeField, Header("ロボットのゲージ画像")]
+    private GameObject gauge;
     [SerializeField, Header("歩く速度")]
     private float walkSpeed;
     [SerializeField, Header("ロボットの稼働時間の最大値")]
     private int MAX_OPERATING_TIME = 10;
-    [SerializeField, Header("ロボットを追従するカメラ(三人称カメラの時に使用)")]
-    private GameObject rayHitCamera;
-    [SerializeField, Header("一人称カメラ")]
-    private GameObject firstPersonCamera;
-    [SerializeField, Header("三人称カメラ")]
-    private GameObject thirdPersonCamera;
-    [SerializeField, Header("ロボットのゲージ画像")]
-    private GameObject gauge;
     [SerializeField, Header("ジャンプにかかる時間")]
     private float jumpSpeed;
     [SerializeField, Header("ジャンプ量")]
@@ -58,15 +58,13 @@ public class PlayerController : MonoBehaviour
     private Ray ray, upRay;
     private RaycastHit rayHit;
     private Image image;
-    private Dictionary<string, bool> xboxButton = new Dictionary<string, bool>();
+    private Dictionary<string, bool> checkButton = new Dictionary<string, bool>();
     private ANIMATION_STATE AniState, preAniState;
     private PLAYER_STATE playerState;
     private float horizontal, vertical;
-    private float jumpTimer, totalTimer;
-    private float lifeTime;
+    private float jumpTimer, lifeTime;
     private bool isGround;
-
-    private int MAX_OPERATING_TIME_FPS;                                     // ロボットの稼働時間（フレーム単位）
+    private int MAX_OPERATING_TIME_FPS;                                     
 
     public StageMgr _StageMgr { set { stageMgr = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
@@ -80,12 +78,12 @@ public class PlayerController : MonoBehaviour
         this.image = gauge.GetComponent<Image>();
         this.playerState = PLAYER_STATE._MOVE;
 
-        xboxButton.Add("A", false);
-        xboxButton.Add("B", false);
-        xboxButton.Add("X", false);
-        xboxButton.Add("Y", false);
-        xboxButton.Add("RB", false);
-        xboxButton.Add("LB", false);
+        checkButton.Add("PAD_A", false);
+        checkButton.Add("PAD_B", false);
+        checkButton.Add("PAD_X", false);
+        checkButton.Add("PAD_Y", false);
+        checkButton.Add("PAD_RB", false);
+        checkButton.Add("PAD_LB", false);
     }
 
     /*******************************************************************
@@ -93,16 +91,13 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void Update()
     {
-        IsGroundRay();
         this.horizontal = Input.GetAxis("Horizontal");
         this.vertical = Input.GetAxis("Vertical");
 
-        Check_XBOX_Button();                                // XBOXのボタン入力チェック
-
-        // 現在ロボットがジャンプしていなかったらジャンプできるか調べる
-        if (playerState != PLAYER_STATE._JUMP)
+        Check_Button();                                // XBOXのボタン入力チェック
+                                                       
+        if (playerState != PLAYER_STATE._JUMP)         // 現在ロボットがジャンプしていなかったらジャンプできるか調べる
         {
-            this.moveDirection = Vector3.zero;
             CheckJumping();
         }
     }
@@ -110,37 +105,37 @@ public class PlayerController : MonoBehaviour
     /*******************************************************************
      * * ボタンの入力チェック (FixedUpdateの際に使用)
      * *****************************************************************/
-    void Check_XBOX_Button()
+    void Check_Button()
     {
 
         if (Input.GetButtonDown("PAD_A_BUTTON"))
         {
-            xboxButton["A"] = true;
+            checkButton["PAD_A"] = true;
         }
 
         if (Input.GetButtonDown("PAD_B_BUTTON"))
         {
-            xboxButton["B"] = true;
+            checkButton["PAD_B"] = true;
         }
 
         if (Input.GetButtonDown("PAD_X_BUTTON"))
         {
-            xboxButton["X"] = true;
+            checkButton["PAD_X"] = true;
         }
 
         if (Input.GetButtonDown("PAD_Y_BUTTON"))
         {
-            xboxButton["Y"] = true;
+            checkButton["PAD_Y"] = true;
         }
 
         if (Input.GetButtonDown("PAD_RB_BUTTON"))
         {
-            xboxButton["RB"] = true;
+            checkButton["PAD_RB"] = true;
         }
 
         if (Input.GetButtonDown("PAD_LB_BUTTON"))
         {
-            xboxButton["LB"] = true;
+            checkButton["PAD_LB"] = true;
         }
     }
 
@@ -155,6 +150,7 @@ public class PlayerController : MonoBehaviour
         // Rayを視覚的に描画
         Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
         Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
+
         // ロボットの前方にあるRayがHitし、ロボットの上方にあるRayがHitしていなければ
         if (Physics.Raycast(ray, out rayHit, RAY_LENGTH) && !Physics.Raycast(upRay, RAY_LENGTH))
         {
@@ -164,6 +160,11 @@ public class PlayerController : MonoBehaviour
                 this.startPoint = transform.position;
                 this.wayPoint = (transform.position + rayHit.transform.position) * 0.5f + Vector3.up * jumpForce;
                 this.endPoint = rayHit.transform.position + Vector3.up * 2;
+                // スピード初期化、目的地にプレイヤーを向ける、ジャンプ状態へ
+                this.moveDirection = Vector3.zero;
+                this.rigidBody.velocity = Vector3.zero;
+                Vector3 dir = (rayHit.transform.position - transform.position).normalized;
+                transform.rotation = Quaternion.LookRotation(new Vector3(dir.x, 0.0f, dir.z));
                 this.playerState = PLAYER_STATE._JUMP;
             }
         }
@@ -198,93 +199,31 @@ public class PlayerController : MonoBehaviour
         // ロボットが空中にいたらこれ以降処理を読まない
         if (!isGround) { return; }
 
-        this.moveDirection = Vector3.zero;
-        this.moveDirection = new Vector3(horizontal, 0.0f, vertical).normalized * walkSpeed;
+        this.cameraDirection = Vector3.Scale(rayHitCamera.transform.forward, new Vector3(1, 0, 1)).normalized;              // カメラの方向から、X-Z平面の単位ベクトルを取得 
 
-        if(horizontal != 0 || vertical != 0)
+        if (horizontal != 0 || vertical != 0)
         {
-            transform.rotation = Quaternion.LookRotation(new Vector3(moveDirection.x, 0.0f, moveDirection.z).normalized);
+            this.moveDirection = cameraDirection * vertical + rayHitCamera.transform.right * horizontal;                    // 方向キーの入力値とカメラの向きから、移動方向を決定
+            this.AniState = ANIMATION_STATE._WALK_ANIMATION;
+            this.moveDirection *= walkSpeed;
+            transform.rotation = Quaternion.LookRotation(moveDirection);            // キャラクターの向きを進行方向に
+        }
+        else
+        {
+            this.AniState = ANIMATION_STATE._IDLE_ANIMATION;
+            this.moveDirection = Vector3.zero;                                      // 移動方向初期化
+            rigidBody.velocity = Vector3.zero;                                      // 移動量初期化
         }
 
         // Yボタンが押されたらロボットを稼働停止させる
-        if (xboxButton["Y"])
+        if (checkButton["PAD_Y"])
         {
-            StopMove();                                         
-            xboxButton["Y"] = false;
+            StopMove();
+            checkButton["PAD_Y"] = false;
             return;
         }
 
-        //this.totalTimer += Time.deltaTime;                                                               // total時間計測
-        //this.moveDirection.y = -500f * totalTimer;                                   　                  // 重力設定
-        this.rigidBody.velocity = moveDirection * Time.deltaTime;                                          // 速度設定
-        //// カメラ切り替え
-        //if (Input.GetButtonDown("PAD_LB_BUTTON"))
-        //{
-        //    Debug.Log("OK");
-        //    firstPersonCamera.SetActive(!firstPersonCamera.activeSelf);
-        //    thirdPersonCamera.SetActive(!thirdPersonCamera.activeSelf);
-        //}
-
-        //this.horizontal = Input.GetAxis("Horizontal");
-        //this.vertical = Input.GetAxis("Vertical");
-
-        //// 一人称視点時のロボットの移動
-        //if(firstPersonCamera.activeSelf)
-        //{
-        //    this.cameraDirection = Vector3.Scale(firstPersonCamera.transform.forward, new Vector3(1, 0, 1)).normalized;              // カメラの方向から、X-Z平面の単位ベクトルを取得 
-        //    transform.rotation = Quaternion.LookRotation(cameraDirection);                                                           // カメラの向きを進行方向に
-
-        //    if (horizontal != 0 || vertical != 0)
-        //    {
-        //        moveDirection = transform.forward * vertical + transform.right * horizontal;
-
-        //        if (Input.GetButton("PAD_RB_BUTTON"))
-        //        {
-        //            rigidBody.velocity = moveDirection * runSpeed;
-        //            this.AniState = ANIMATION_STATE._RUN_ANIMATION;
-        //        }
-        //        else
-        //        {
-        //            rigidBody.velocity = moveDirection * walkSpeed;
-        //            this.AniState = ANIMATION_STATE._WALK_ANIMATION;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        AniState = ANIMATION_STATE._IDLE_ANIMATION;
-        //        this.moveDirection = Vector3.zero;                                      // 移動方向初期化
-        //        rigidBody.velocity = Vector3.zero;                                      // 移動量初期化
-        //    }
-        //}
-        //// 三人称視点時のロボットの移動
-        //else
-        //{
-        //    this.cameraDirection = Vector3.Scale(rayHitCamera.transform.forward, new Vector3(1, 0, 1)).normalized;              // カメラの方向から、X-Z平面の単位ベクトルを取得 
-
-        //    if (horizontal != 0 || vertical != 0)
-        //    {
-        //        this.moveDirection = cameraDirection * vertical + rayHitCamera.transform.right * horizontal;                    // 方向キーの入力値とカメラの向きから、移動方向を決定
-
-        //        if (Input.GetButton("PAD_RB_BUTTON"))
-        //        {
-        //            rigidBody.velocity = moveDirection * runSpeed;
-        //            this.AniState = ANIMATION_STATE._RUN_ANIMATION;
-        //        }
-        //        else
-        //        {
-        //            rigidBody.velocity = moveDirection * walkSpeed;
-        //            this.AniState = ANIMATION_STATE._WALK_ANIMATION;
-        //        }
-        //        transform.rotation = Quaternion.LookRotation(moveDirection);            // キャラクターの向きを進行方向に
-        //    }
-        //    else
-        //    {
-        //        AniState = ANIMATION_STATE._IDLE_ANIMATION;
-        //        this.moveDirection = Vector3.zero;                                      // 移動方向初期化
-        //        rigidBody.velocity = Vector3.zero;                                      // 移動量初期化
-        //    }
-        //}
-
+        this.rigidBody.velocity = moveDirection * Time.deltaTime;                   // 速度設定
     }
 
     /*******************************************************************
@@ -365,22 +304,8 @@ public class PlayerController : MonoBehaviour
         this.lifeTime = 0;                                      // 秒数初期化
         GetComponent<Rigidbody>().isKinematic = true;           // 物理演算の影響を受けないようにする
         Destroy(GetComponent<PlayerController>());              // このコンポーネント削除
-    }
-
-    bool IsGroundRay()
-    {
-        List<Ray> groundRays = new List<Ray>();
-        groundRays.Add(new Ray(transform.position + new Vector3(0, -0.1f, 0), transform.up * -1));
-        groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, 0.4f), transform.up * -1));
-        groundRays.Add(new Ray(transform.position + new Vector3(0.4f, -0.1f, -0.4f), transform.up * -1));
-        groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, 0.4f), transform.up * -1));
-        groundRays.Add(new Ray(transform.position + new Vector3(-0.4f, -0.1f, -0.4f), transform.up * -1));
-
-        for(int i = 0; i < groundRays.Count; i++)
-        {
-            Debug.DrawRay(groundRays[i].origin, groundRays[i].direction * 0.1f, Color.red);
-        }
-        return true;
+        Destroy(UI);                                            // UIを削除
+        Destroy(thirdPersonCamera);                             // カメラを削除
     }
 
     /*******************************************************************
@@ -398,7 +323,7 @@ public class PlayerController : MonoBehaviour
         // ジャンプ中にオブジェクトにぶつかったら、落下する
         if(playerState == PLAYER_STATE._JUMP && jumpTimer >= 0.5f)
         {
-            playerState = PLAYER_STATE._MOVE;
+            this.playerState = PLAYER_STATE._MOVE;
             this.jumpTimer = 0;
         }
 
@@ -414,7 +339,7 @@ public class PlayerController : MonoBehaviour
         // 地上を離れたらisGroundをFALSE
         if (isGround)
         {
-            rigidBody.velocity = Vector3.zero;
+            Debug.Log(moveDirection.magnitude);
             this.isGround = false;
         }
     }
