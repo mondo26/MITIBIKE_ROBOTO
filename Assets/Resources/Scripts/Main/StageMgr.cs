@@ -5,10 +5,14 @@ using UnityEngine.UI;
 
 public class StageMgr : MonoBehaviour
 {
+    #region 定数
     private const int SIXTY = 60;
+    #endregion
 
     [SerializeField, Header("プレイヤー")]
     private GameObject player;
+    [SerializeField, Header("見下ろし視点カメラ")]
+    private GameObject LookingDownCamera;
     [SerializeField, Header("制限時間のテキスト")]
     private GameObject limitTimeText;
     [SerializeField, Header("制限時間のテキスト背景")]
@@ -16,27 +20,37 @@ public class StageMgr : MonoBehaviour
     [SerializeField, Header("制限時間")]
     private int timeLimit;
 
+    private GameObject prefab;
     private PlayerController playerController;
     private Text limitText;
     private Image limitBackGround;
     private int fps;
-    private bool stageClearFlg;
 
     void Start ()
     {
         this.limitText = limitTimeText.GetComponent<Text>();
         this.limitBackGround = limitTimeBackGround.GetComponent<Image>();
-        UIRender();                                         
-        GenerateRobot();
+        //UIRender();                                         
 	}
 
     void Update()
     {
+        // Playerが生成されてなく、Xボタンを押したら
+        if(!prefab && Input.GetButtonDown("PAD_X_BUTTON"))
+        {
+            GenerateRobot();                // ロボットを生成
+        }
     }
 
     void FixedUpdate()
     {
-        CheckTimeMeasurement();
+        // プレイヤーが生成されていたら
+        if(prefab)
+        {
+            // 現在ゲーム上にいるロボットの稼働時間を引いていく
+            --playerController._LifeTime;
+           // CheckTimeMeasurement();         // ロボットの稼働時間を引く
+        }
     }
 
     /*******************************************************************
@@ -76,9 +90,10 @@ public class StageMgr : MonoBehaviour
     * *****************************************************************/
     public void GenerateRobot()
     {
-        GameObject prefab = Instantiate(player, new Vector3(10, 5, 0), Quaternion.identity);
+        this.prefab = Instantiate(player, new Vector3(10, 5, 0), Quaternion.identity);
         this.playerController = prefab.GetComponent<PlayerController>();
         this.playerController._StageMgr = this.gameObject.GetComponent<StageMgr>();
+        this.playerController._ThirdPersonCamera.SetActive(true);
     }
 
     /*******************************************************************
@@ -88,5 +103,7 @@ public class StageMgr : MonoBehaviour
     {
         Debug.Log("Clear");
     }
+
+    
 
 }

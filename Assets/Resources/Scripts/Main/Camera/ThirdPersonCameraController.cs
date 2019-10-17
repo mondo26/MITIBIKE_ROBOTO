@@ -7,24 +7,31 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     [SerializeField, Header("プレイヤー")]
     private GameObject player;
-    [SerializeField, Header("カメラの回転する速度")]                                      
-    private float rotateSpeed;                                            
+    [SerializeField, Header("ロボットを追従するカメラ(三人称カメラの時に使用")]
+    private GameObject rayHitCamera;
+    [SerializeField, Header("カメラの回転する速度")]
+    private float rotateSpeed;
+    [SerializeField, Header("カメラが障害物に衝突した際に、移動する速度")]
+    private float hitCameraSpeed;
+
     private float yaw, pitch;                                                   // 横縦の回転量を格納
     private const float MIN_ANGLE = -30;                                        // Angleの最小値
-    private const float MAX_ANGLE = 30;                                         // Angleの最大値
+    private const float MAX_ANGLE = 45;                                         // Angleの最大値
 
-    public virtual void Start()
+    void Start()
     {
+        var rayHitController = rayHitCamera.GetComponent<RayHitCameraController>();
+        rayHitController._HitCameraSpeed = hitCameraSpeed;
     }
 
-    public virtual void Update()
+    void Update()
     {
         // プレイヤー位置を追従する
         transform.position = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
 
-        yaw += Input.GetAxis("Horizontal_Camera") * rotateSpeed;                // 横回転入力
-        pitch -= Input.GetAxis("Vertical_Camera") * rotateSpeed;                // 縦回転入力
-        pitch = Mathf.Clamp(pitch, MIN_ANGLE, MAX_ANGLE);                       // 縦回転角度制限する
+        this.yaw -= Input.GetAxis("Horizontal_Camera") * rotateSpeed;                // 横回転入力
+        this.pitch -= Input.GetAxis("Vertical_Camera") * rotateSpeed;                // 縦回転入力
+        this.pitch = Mathf.Clamp(pitch, MIN_ANGLE, MAX_ANGLE);                       // 縦回転角度制限する
 
         transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);                  // 回転の実行
     }
