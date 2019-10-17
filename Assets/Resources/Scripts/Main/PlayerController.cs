@@ -5,8 +5,10 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    #region 定数
     private const float RAY_LENGTH = 1.5f;                                  // レイを放つ距離
     private const int MIN_STAGE_POS = -10;                                  // ステージの最小座標（画面外）
+    #endregion
 
     enum ANIMATION_STATE    // アニメーションの状態
     {
@@ -66,9 +68,11 @@ public class PlayerController : MonoBehaviour
     private float horizontal, vertical;
     private float jumpTimer, lifeTime;
     private bool isGround;
-    private int MAX_OPERATING_TIME_FPS;                                     
+    private int MAX_OPERATING_TIME_FPS;
 
+    // StageMgr.csで使用 getter, setter
     public StageMgr _StageMgr { set { stageMgr = value; } }
+    public GameObject _ThirdPersonCamera { get { return thirdPersonCamera; } set { thirdPersonCamera = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
 
     void Start ()

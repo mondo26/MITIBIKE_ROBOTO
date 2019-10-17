@@ -60,7 +60,7 @@ public class MouseController : MonoBehaviour
     private ANIMATION_STATE AniState, preAniState;
     private PLAYER_STATE playerState;
     private float horizontal, vertical;
-    private float jumpTimer, moveTimer;
+    private float jumpTimer;
     private int seconds;
     private bool isGround;
 
@@ -98,7 +98,6 @@ public class MouseController : MonoBehaviour
                 this.screenToWorldPointPosition = hit.collider.gameObject.transform.position;
                 //this.screenToWorldPointPosition.y = 0.0f;
             }
-            moveTimer = 0;
         }
 
 

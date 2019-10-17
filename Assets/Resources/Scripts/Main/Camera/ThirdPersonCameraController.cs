@@ -29,9 +29,9 @@ public class ThirdPersonCameraController : MonoBehaviour
         // プレイヤー位置を追従する
         transform.position = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
 
-        yaw -= Input.GetAxis("Horizontal_Camera") * rotateSpeed;                // 横回転入力
-        pitch -= Input.GetAxis("Vertical_Camera") * rotateSpeed;                // 縦回転入力
-        pitch = Mathf.Clamp(pitch, MIN_ANGLE, MAX_ANGLE);                       // 縦回転角度制限する
+        this.yaw -= Input.GetAxis("Horizontal_Camera") * rotateSpeed;                // 横回転入力
+        this.pitch -= Input.GetAxis("Vertical_Camera") * rotateSpeed;                // 縦回転入力
+        this.pitch = Mathf.Clamp(pitch, MIN_ANGLE, MAX_ANGLE);                       // 縦回転角度制限する
 
         transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);                  // 回転の実行
     }

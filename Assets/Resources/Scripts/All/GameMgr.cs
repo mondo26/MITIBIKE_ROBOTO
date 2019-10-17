@@ -31,8 +31,8 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
 
     void Start ()
     {
-        SoundMgr.Instance.PlayBgm("MainBGM");
-        Instantiate(stages[0], Vector3.zero, Quaternion.identity);
+        SoundMgr.Instance.PlayBgm("MainBGM");                               // MainBGM再生
+        Instantiate(stages[0], Vector3.zero, Quaternion.identity);          // Stageを生成
 	}
 	
 	void Update ()
@@ -44,7 +44,9 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
         //}
     }
 
-    // FPS計測
+    /// <summary>
+    /// FPSを調べる
+    /// </summary>
     void CheckFPS()
     {
         m_timeleft -= Time.deltaTime;
@@ -59,6 +61,9 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
         m_frames = 0;
     }
 
+    /// <summary>
+    /// FPS描画
+    /// </summary>
     void OnGUI()
     {
         GUI.color = Color.red;
