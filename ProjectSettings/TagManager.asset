@@ -6,6 +6,8 @@ TagManager:
   tags:
   - ClearFlag
   - Ground
+  - SoundMgr
+  - GameMgr
   layers:
   - Default
   - TransparentFX

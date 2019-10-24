@@ -2,28 +2,69 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LookingDownCameraController : MonoBehaviour
+/******************************************************************
+ * * 見下ろし視点カメラ　(CameraBaseから継承)
+ * ****************************************************************/
+public class LookingDownCameraController : CameraBase
 {
-    [SerializeField, Header("見下ろし視点のカメラ")]
-    private GameObject lookingDownHitCamera;
-    [SerializeField, Header("カメラの回転する速度")]
-    private float rotateSpeed;
+    #region 定数(const)
+    private const int MAX_ZOOM_IN = 100;                    // フェードインできる最大値
+    private const int MAX_ZOOM_OUT = 10;                    // フェードアウトできる最大値
+    #endregion
+    [SerializeField, Header("ズームスピード")]
+    private float zoomSpeed;
+    [SerializeField, Header("カメラ"), Tooltip("場所 Stage01/LookingDownCamera/MCamera")]
+    private GameObject mCamera;
 
-    private float yaw, pitch;                                                   // 横縦の回転量を格納
-    private const float MIN_ANGLE = -60;                                        // Angleの最小値
-    private const float MAX_ANGLE = 30;                                         // Angleの最大値
+    private Camera myCamera;
+    private float LRTrigger;
 
-    void Start()
+    /// <summary>
+    /// コンストラクタ (cameraBase Override)
+    /// </summary>
+    public override void Awake()
     {
-        //var lookingHitController = lookingDownHitCamera.GetComponent<LookingDownHitCameraController>();
+        this.MIN_ANGLE = -45;
+        this.MAX_ANGLE = 30;
+        this.myCamera = mCamera.GetComponent<Camera>();
     }
 
-    void Update()
+    /// <summary>
+    /// 更新処理 (cameraBase Override)
+    /// </summary>
+    public override void Update()
     {
-        this.yaw += Input.GetAxis("Horizontal_Camera") * rotateSpeed;                       // 横回転入力
-        this.pitch += Input.GetAxis("Vertical_Camera") * rotateSpeed;                       // 縦回転入力
-        this.pitch = Mathf.Clamp(pitch, MIN_ANGLE, MAX_ANGLE);                       // 縦回転角度制限する
+        // BaseCameraのUpdate実行
+        base.Update();
+    }
 
-        transform.eulerAngles = new Vector3(0.0f, yaw, pitch);                       // 回転の実行
+    /// <summary>
+    /// 指定フレーム更新処理(cameraBase Override)
+    /// </summary>
+    public override void FixedUpdate()
+    {
+        // BaseCameraのFixedUpdate実行
+        base.FixedUpdate();
+        // Zoom処理
+        Zoom();
+    }
+
+    /// <summary>
+    /// ズーム処理
+    /// </summary>
+    private void Zoom()
+    {
+        this.LRTrigger = Input.GetAxis("PAD_LR_TRIGGER");
+
+        // ズームイン処理
+        if(myCamera.fieldOfView <= MAX_ZOOM_IN && 0 < LRTrigger)
+        {
+            this.myCamera.fieldOfView += LRTrigger * Time.deltaTime * zoomSpeed;
+        }
+        // ズームアウト処理
+        else if(myCamera.fieldOfView >= MAX_ZOOM_OUT && 0 > LRTrigger)
+        {
+            this.myCamera.fieldOfView += LRTrigger * Time.deltaTime * zoomSpeed;
+        }
     }
 }

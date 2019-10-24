@@ -1,24 +1,44 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// シングルトンを継承したゲームマネージャー
-/// </summary>
+/******************************************************************
+ * * ステージに関する列挙型
+ * ****************************************************************/
+public enum STAGE
+{
+    _01,
+    _02,
+    _03,
+};
+
+/******************************************************************
+ * * ゲームを管理するクラス　(SingletonMonoBehaviourから継承)
+ * ****************************************************************/
 [DisallowMultipleComponent]
 public class GameMgr : SingletonMonoBehaviour<GameMgr>
 {
     [SerializeField, Header("ステージ")]
     private List<GameObject> stages;
 
+    private int clearStageData;
+
+    // 静的変数
+    public static bool IsLock { get; set; }             // 処理を止める変数
+    #region フレームレート計測に使う変数
     private float m_updateInterval = 0.5f;
     private float m_accum;
     private int m_frames;
     private float m_timeleft;
     private float m_fps;
+    #endregion
 
-    public void Awake()
+    /// <summary>
+    /// Start 関数の前およびプレハブのインスタンス化直後に呼び出される
+    /// </summary>
+    public　void Awake()
     {
         // インスタンスが既にあったら削除
         if (this != Instance)
@@ -29,19 +49,12 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
         DontDestroyOnLoad(gameObject);                  // シーンをまたいでも削除されないようにする
     }
 
-    void Start ()
-    {
-        SoundMgr.Instance.PlayBgm("MainBGM");                               // MainBGM再生
-        Instantiate(stages[0], Vector3.zero, Quaternion.identity);          // Stageを生成
-	}
-	
+    /// <summary>
+    /// 毎フレーム更新
+    /// </summary>
 	void Update ()
     {
-        CheckFPS();
-        //if(Input.GetMouseButtonDown(0))
-        //{
-        //    SceneManager.LoadScene("Title");
-        //}
+        CheckFPS();                                                         // FPSを調べる                                                                    
     }
 
     /// <summary>
@@ -68,5 +81,24 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
     {
         GUI.color = Color.red;
         GUILayout.Label("FPS: " + m_fps.ToString("f2"));
+    }
+
+    /// <summary>
+    /// ステージを生成する処理
+    /// </summary>
+    /// <param name="_stageSelect"></param>
+    public void CreateStage(STAGE _stageSelect)
+    {
+        switch(_stageSelect)
+        {
+            case STAGE._01:
+                Instantiate(stages[0], Vector3.zero, Quaternion.identity);              // Stageを生成
+                SoundMgr.Instance.PlayBgm("MainBGM");                                   // MainBGM再生
+                break;
+            case STAGE._02:
+                break;
+            case STAGE._03:
+                break;
+        }
     }
 }
