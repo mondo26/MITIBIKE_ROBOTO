@@ -43,6 +43,8 @@ public class LookingDownCameraController : CameraBase
     /// </summary>
     public override void FixedUpdate()
     {
+        // ロック中ならこれ以降処理を読まない
+        if (GameMgr.IsLock) { return; }
         // BaseCameraのFixedUpdate実行
         base.FixedUpdate();
         // Zoom処理

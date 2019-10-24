@@ -282,6 +282,15 @@ public class PlayerController : MonoBehaviour
      * *　衝突判定
      * *****************************************************************/
 
+    private void OnTriggerEnter(Collider other)
+    {
+        // クリア処理
+        if (other.name == "ClearFlag")
+        {
+            this.stageMgr.StageClear();
+        }
+    }
+
     private void OnTriggerStay(Collider other)
     {
         // 地上に着いたらisGroundをTRUE
@@ -296,7 +305,6 @@ public class PlayerController : MonoBehaviour
             this.playerState = PLAYER_STATE._MOVE;
             this.jumpTimer = 0;
         }
-
     }
 
     private void OnTriggerExit(Collider other)

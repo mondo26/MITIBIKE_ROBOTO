@@ -35,6 +35,8 @@ public class StageMgr : MonoBehaviour
 
     void FixedUpdate()
     {
+        // ロック中ならこれ以降処理を読まない
+        if (GameMgr.IsLock) { return; }
 
         // プレイヤーが生成されていたら
         if(prefab)
@@ -87,6 +89,10 @@ public class StageMgr : MonoBehaviour
     /// </summary>
     public void StageClear()
     {
-        Debug.Log("Clear");
+        if(!GameMgr.IsLock)
+        {
+            Debug.Log("Clear");
+            SceneMgr.NextScene("Select");
+        }
     }
 }

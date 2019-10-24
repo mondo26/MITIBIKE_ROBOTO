@@ -29,6 +29,7 @@ public class StageUIController : MonoBehaviour
         SE,
         CANCEL,
         CHANGE,
+
     };
 
     [SerializeField, Header("音を設定するUI")]
@@ -75,6 +76,9 @@ public class StageUIController : MonoBehaviour
 
     void Update ()
     {
+        // ロック中ならこれ以降処理を読まない
+        if (GameMgr.IsLock) { return; }
+
         this.horizontal = Input.GetAxisRaw("Horizontal");
         this.vertical = Input.GetAxisRaw("Vertical") * -1;
 

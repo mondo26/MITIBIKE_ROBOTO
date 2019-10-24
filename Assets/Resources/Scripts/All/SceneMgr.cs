@@ -93,7 +93,7 @@ public class SceneMgr : SingletonMonoBehaviour<SceneMgr>
         gameMgr.CreateStage(_stage);                            // ステージを生成
 
         // ワイプを表示する
-        for (float i = 0.0f; i < 0.21f; i += 0.04f)
+        for (float i = 0.0f; i < 0.21f; i += 0.01f)
         {
             fadeMaterial.SetFloat("_Radius", i);
             yield return null;

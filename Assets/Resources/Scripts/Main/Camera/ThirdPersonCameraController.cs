@@ -48,8 +48,8 @@ public class ThirdPersonCameraController : CameraBase
         transform.position = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
         // BaseCameraのFixedUpdate実行
         base.FixedUpdate();
-        // RayCheck
-        RayCheckCamera();
+        // 障害物に当たったらズーム
+        //RayCheckCamera();
     }
 
     /// <summary>
