@@ -15,7 +15,7 @@ public class Switch : MonoBehaviour {
 	}
 
     private void OnTriggerEnter(Collider order){
-        if(order.name == "Player"){
+        if(order.tag == "Player"){
             switchdown.SetBool("down", true);
         }
     }
