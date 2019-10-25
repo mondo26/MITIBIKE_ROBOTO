@@ -49,7 +49,7 @@ public class ThirdPersonCameraController : CameraBase
         // BaseCameraのFixedUpdate実行
         base.FixedUpdate();
         // 障害物に当たったらズーム
-        //RayCheckCamera();
+        //.RayCheckCamera();
     }
 
     /// <summary>

@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-/******************************************************************
- * * プレイヤーコントローラー
- * ****************************************************************/
-public class PlayerController : MonoBehaviour
+public class TestPlayerController : MonoBehaviour
 {
     #region 定数(const)
     private const float RAY_LENGTH = 1.5f;                                  // レイを放つ距離
@@ -59,7 +56,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Header("ジャンプ量")]
     private float jumpForce;
 
-    private StageMgr stageMgr;
+    private TestStageMgr stageMgr;
     private XboxInput xboxInput;
     private Rigidbody rigidBody;
     private Animator animator;
@@ -76,13 +73,13 @@ public class PlayerController : MonoBehaviour
     private int MAX_OPERATING_TIME_FPS;
 
     // StageMgr.csで使用 getter, setter
-    public StageMgr _StageMgr { set { stageMgr = value; } }
+    public TestStageMgr _StageMgr { set { stageMgr = value; } }
     public GameObject _ThirdPersonCamera { get { return thirdPersonCamera; } set { thirdPersonCamera = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
 
-    void Start ()
+    void Start()
     {
-        this.MAX_OPERATING_TIME_FPS =  MAX_OPERATING_TIME * 60;            // ロボットの稼働時間（フレーム単位変換）
+        this.MAX_OPERATING_TIME_FPS = MAX_OPERATING_TIME * 60;            // ロボットの稼働時間（フレーム単位変換）
         this.lifeTime = MAX_OPERATING_TIME_FPS;
         this.rigidBody = GetComponent<Rigidbody>();
         this.animator = GetComponent<Animator>();
@@ -138,8 +135,8 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void FixedUpdate()
     {
-        // ロック中ならこれ以降処理を読まない
-        if (GameMgr.IsLock) { return; }
+        //// ロック中ならこれ以降処理を読まない
+        //if (GameMgr.IsLock) { return; }
 
         // ロボットが稼働可能か調べる
         if (CheckOperating())
@@ -157,7 +154,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // 現在ロボットがジャンプしていなかったらジャンプできるか調べる
-        if (playerState != PLAYER_STATE._JUMP)          
+        if (playerState != PLAYER_STATE._JUMP)
         {
             CheckJumping();
         }
@@ -170,7 +167,6 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void PlayerMove()
     {
-        Debug.Log("OK");
         // ロボットが空中にいたらこれ以降処理を読まない
         if (!isGround) { return; }
 
@@ -191,7 +187,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Yボタンが押されたらロボットを稼働停止にさせる
-        if(xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_Y))
+        if (xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_Y))
         {
             StopMove();
             return;
@@ -226,9 +222,9 @@ public class PlayerController : MonoBehaviour
     void AnimationState()
     {
         // 現在流れているanimationが前のアニメーションと違うなら処理
-        if(preAniState != AniState)
+        if (preAniState != AniState)
         {
-            switch(AniState)
+            switch (AniState)
             {
                 case ANIMATION_STATE._IDLE_ANIMATION:
                     animator.SetBool("WALK", false);
@@ -261,9 +257,9 @@ public class PlayerController : MonoBehaviour
         }
 
         // 稼働時間が０でロボットが地面についていれば、活動を停止させる
-        if (lifeTime <= 0 && isGround)
+        if (lifeTime <= 0 /*&& isGround*/)
         {
-            StopMove();         
+            StopMove();
             return false;
         }
         return true;
@@ -304,7 +300,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // ジャンプ中にオブジェクトにぶつかったら、落下する
-        if(playerState == PLAYER_STATE._JUMP && jumpTimer >= 0.5f)
+        if (playerState == PLAYER_STATE._JUMP && jumpTimer >= 0.5f)
         {
             this.playerState = PLAYER_STATE._MOVE;
             this.jumpTimer = 0;
