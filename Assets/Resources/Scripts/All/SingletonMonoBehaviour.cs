@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// MonoBehaviourを継承したシングルトン
-/// </summary>
+/******************************************************************
+ * * シングルトン
+ * ****************************************************************/
 public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
 {
     private static T instance;

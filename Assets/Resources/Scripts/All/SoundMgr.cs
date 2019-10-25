@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// シングルトンを継承したサウンドマネージャー
-/// </summary>
+/******************************************************************
+ * * 音を管理するクラス (SingletonMonoBehaviourから継承)
+ * ****************************************************************/
 [DisallowMultipleComponent]
 public class SoundMgr : SingletonMonoBehaviour<SoundMgr>
 {

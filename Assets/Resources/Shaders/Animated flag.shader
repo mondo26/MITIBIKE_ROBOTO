@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Custom/Flag" {
+Shader "MyShader/Flag" {
     Properties {
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Speed ("Speed", Range(0, 10.0)) = 1

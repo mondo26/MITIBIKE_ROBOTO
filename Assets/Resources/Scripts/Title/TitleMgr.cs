@@ -3,23 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// タイトルに関するスクリプト
-/// </summary>
+/******************************************************************
+ * * タイトルを管理するクラス
+ * ****************************************************************/
 public class TitleMgr : MonoBehaviour
 {
-
 	void Start ()
     {
-		
+        		
 	}
 
     void Update()
     {
-        // Bボタンか左クリックで次のシーンへ
-        if (Input.GetButtonDown("PAD_B_BUTTON") || Input.GetMouseButtonDown(0))
+        if(Input.GetButtonDown("PAD_B_BUTTON") && !GameMgr.IsLock)
         {
-            SceneManager.LoadScene("Main");
+            SceneMgr.NextScene("Select");
         }
     }
 }

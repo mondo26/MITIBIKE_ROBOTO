@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/******************************************************************
+ * * ステージを管理するクラス
+ * ****************************************************************/
 public class StageMgr : MonoBehaviour
 {
     #region 定数
@@ -11,84 +14,60 @@ public class StageMgr : MonoBehaviour
 
     [SerializeField, Header("プレイヤー")]
     private GameObject player;
-    [SerializeField, Header("見下ろし視点カメラ")]
-    private GameObject LookingDownCamera;
-    [SerializeField, Header("制限時間のテキスト")]
-    private GameObject limitTimeText;
-    [SerializeField, Header("制限時間のテキスト背景")]
-    private GameObject limitTimeBackGround;
-    [SerializeField, Header("制限時間")]
-    private int timeLimit;
+    [SerializeField, Header("ステージUI")]
+    private GameObject stageUI;
 
     private GameObject prefab;
     private PlayerController playerController;
-    private Text limitText;
-    private Image limitBackGround;
-    private int fps;
+    private XboxInput xboxInput;
+
+    public GameObject _Prefab { set { prefab = value; } }
 
     void Start ()
     {
-        this.limitText = limitTimeText.GetComponent<Text>();
-        this.limitBackGround = limitTimeBackGround.GetComponent<Image>();
-        //UIRender();                                         
+        this.xboxInput = new XboxInput();
 	}
 
     void Update()
     {
-        // Playerが生成されてなく、Xボタンを押したら
-        if(!prefab && Input.GetButtonDown("PAD_X_BUTTON"))
-        {
-            GenerateRobot();                // ロボットを生成
-        }
+        xboxInput.InputUpdate();        // 入力更新
     }
 
     void FixedUpdate()
     {
+        // ロック中ならこれ以降処理を読まない
+        if (GameMgr.IsLock) { return; }
+
         // プレイヤーが生成されていたら
         if(prefab)
         {
             // 現在ゲーム上にいるロボットの稼働時間を引いていく
             --playerController._LifeTime;
-           // CheckTimeMeasurement();         // ロボットの稼働時間を引く
         }
-    }
-
-    /*******************************************************************
-     * *　経過時間を計測する処理
-    * *****************************************************************/
-    void CheckTimeMeasurement()
-    {
-        // 現在ゲーム上にいるロボットの稼働時間を引いていく
-        --playerController._LifeTime;
-        // 秒数加算処理
-        if (++fps >= SIXTY)
+        // Playerが生成されてなく
+        else
         {
-            --timeLimit;                                    // タイムリミットの時間を引いていく
-            UIRender();                                     // UIを描画
-            fps = 0;
+            // Xボタンを押したらロボット生成
+            if (xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_X))
+            {
+                GenerateRobot();
+            }
         }
-    }
 
-    /*******************************************************************
-     * *　UI描画
-    * *****************************************************************/
-    void UIRender()
-    {
-        // 制限時間テキスト描画
-        string a = timeLimit / SIXTY >= 10 ? (timeLimit / SIXTY).ToString() : "0" + (timeLimit / SIXTY).ToString();
-        string b = timeLimit % SIXTY >= 10 ? (timeLimit % SIXTY).ToString() : "0" + (timeLimit % SIXTY).ToString();
-        this.limitText.text = a.ToString() +":"+ b.ToString();
-
-        if(timeLimit <= 0)
+        // MENUボタンを押すとMENU画面へ
+        if (xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_MENU))
         {
-            this.limitBackGround.color = Color.black;
+            ShowingMenu();
         }
+
+        xboxInput.Initialize();        // 入力初期化
     }
 
-    /*******************************************************************
-     * *　ロボットを生成する処理
-    * *****************************************************************/
-    public void GenerateRobot()
+
+    /// <summary>
+    /// ロボットを生成する処理
+    /// </summary>
+    void GenerateRobot()
     {
         this.prefab = Instantiate(player, new Vector3(10, 5, 0), Quaternion.identity);
         this.playerController = prefab.GetComponent<PlayerController>();
@@ -96,14 +75,24 @@ public class StageMgr : MonoBehaviour
         this.playerController._ThirdPersonCamera.SetActive(true);
     }
 
-    /*******************************************************************
-     * *　ステージクリア処理
-    * *****************************************************************/
-    public void StageClear()
+    /// <summary>
+    /// メニューを表示する処理
+    /// </summary>
+    void ShowingMenu()
     {
-        Debug.Log("Clear");
+        Time.timeScale = 0.0f;
+        stageUI.SetActive(true);
     }
 
-    
-
+    /// <summary>
+    /// ステージをクリアする処理
+    /// </summary>
+    public void StageClear()
+    {
+        if(!GameMgr.IsLock)
+        {
+            Debug.Log("Clear");
+            SceneMgr.NextScene("Select");
+        }
+    }
 }
