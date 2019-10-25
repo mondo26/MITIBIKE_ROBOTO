@@ -107,8 +107,8 @@ public class TestPlayerController : MonoBehaviour
         this.ray = new Ray(transform.position + Vector3.up / 2, transform.forward);
         this.upRay = new Ray(transform.position + Vector3.up * 2, transform.forward);
         //// Rayを視覚的に描画
-        //Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
-        //Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
+        Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
+        Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
 
         // ロボットの前方にあるRayがHitし、ロボットの上方にあるRayがHitしていなければ
         if (Physics.Raycast(ray, out rayHit, RAY_LENGTH, jumpLayerMask) && !Physics.Raycast(upRay, RAY_LENGTH))
