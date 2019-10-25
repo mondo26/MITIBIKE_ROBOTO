@@ -1,34 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-/******************************************************************
- * * ステージを管理するクラス
- * ****************************************************************/
-public class StageMgr : MonoBehaviour
+public class TestStageMgr : MonoBehaviour
 {
+
     #region 定数
     private const int SIXTY = 60;
     #endregion
 
     [SerializeField, Header("プレイヤー")]
     private GameObject player;
-    [SerializeField, Header("ステージUI")]
-    private GameObject stageUI;
 
     //private GameObject startCamera;
     private GameObject prefab;
-    private PlayerController playerController;
+    private TestPlayerController playerController;
     private XboxInput xboxInput;
 
     public GameObject _Prefab { set { prefab = value; } }
 
-    void Start ()
+    void Start()
     {
         this.xboxInput = new XboxInput();
         //this.startCamera = GameObject.Find("StartCamera");
-	}
+    }
 
     void Update()
     {
@@ -37,11 +32,11 @@ public class StageMgr : MonoBehaviour
 
     void FixedUpdate()
     {
-        // ロック中ならこれ以降処理を読まない
-        if (GameMgr.IsLock) { return; }
+        //// ロック中ならこれ以降処理を読まない
+        //if (GameMgr.IsLock) { return; }
 
         // プレイヤーが生成されていたら
-        if(prefab)
+        if (prefab)
         {
             // 現在ゲーム上にいるロボットの稼働時間を引いていく
             --playerController._LifeTime;
@@ -55,13 +50,6 @@ public class StageMgr : MonoBehaviour
                 GenerateRobot();
             }
         }
-
-        // MENUボタンを押すとMENU画面へ
-        if (xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_MENU))
-        {
-            ShowingMenu();
-        }
-
         xboxInput.Initialize();        // 入力初期化
     }
 
@@ -72,19 +60,11 @@ public class StageMgr : MonoBehaviour
     void GenerateRobot()
     {
         this.prefab = Instantiate(player, new Vector3(10, 5, 0), Quaternion.identity);
-        this.playerController = prefab.GetComponent<PlayerController>();
-        this.playerController._StageMgr = this.gameObject.GetComponent<StageMgr>();
+        this.playerController = prefab.GetComponent<TestPlayerController>();
+        this.playerController._StageMgr = this.gameObject.GetComponent<TestStageMgr>();
         this.playerController._ThirdPersonCamera.SetActive(true);
     }
 
-    /// <summary>
-    /// メニューを表示する処理
-    /// </summary>
-    void ShowingMenu()
-    {
-        Time.timeScale = 0.0f;
-        stageUI.SetActive(true);
-    }
 
     /// <summary>
     /// ステージをクリアする処理
