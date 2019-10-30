@@ -170,7 +170,6 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void PlayerMove()
     {
-        Debug.Log("OK");
         // ロボットが空中にいたらこれ以降処理を読まない
         if (!isGround) { return; }
 
