@@ -19,6 +19,11 @@ public class Switch : MonoBehaviour {
             switchdown.SetBool("down", true);
         }
     }
+    private void OnTriggerExit(Collider other){
+        if (other.tag == "Player"){
+            switchdown.SetBool("down", false);
+        }
+    }
 
     // Update is called once per frame
     void Update () {
