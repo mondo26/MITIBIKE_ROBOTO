@@ -59987,7 +59987,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d099120b1dae7c84db93ca78565d6ce4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 1577766320699652, guid: deb540586fc9f474aac8fbf301314646, type: 2}
+  player: {fileID: 1229339884896208, guid: 45322c15ae95e4f41824ce8e0d6450c1, type: 2}
   stageUI: {fileID: 1839262356928778}
 --- !u!114 &114030670489043674
 MonoBehaviour:

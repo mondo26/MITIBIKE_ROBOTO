@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour
         _IDLE_ANIMATION,
         _WALK_ANIMATION,
         _RUN_ANIMATION,
+        _STOP_ANIMATION,
     };
 
     enum XBOX_BUTTON        // X_BOXのボタン入力
@@ -41,7 +42,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     [SerializeField, Header("ロボットを追従するカメラ(三人称カメラの時に使用)")]
-    private GameObject rayHitCamera;
+    private GameObject mCamera;
     [SerializeField, Header("三人称カメラ")]
     private GameObject thirdPersonCamera;
     [SerializeField, Header("UI")]
@@ -109,9 +110,9 @@ public class PlayerController : MonoBehaviour
         // Rayを生成
         this.ray = new Ray(transform.position + Vector3.up / 2, transform.forward);
         this.upRay = new Ray(transform.position + Vector3.up * 2, transform.forward);
-        //// Rayを視覚的に描画
-        //Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
-        //Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
+        // Rayを視覚的に描画
+        Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
+        Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
 
         // ロボットの前方にあるRayがHitし、ロボットの上方にあるRayがHitしていなければ
         if (Physics.Raycast(ray, out rayHit, RAY_LENGTH, jumpLayerMask) && !Physics.Raycast(upRay, RAY_LENGTH))
@@ -162,6 +163,7 @@ public class PlayerController : MonoBehaviour
             CheckJumping();
         }
 
+        AnimationState();
         this.xboxInput.Initialize();                // Xbox入力初期化
     }
 
@@ -173,11 +175,11 @@ public class PlayerController : MonoBehaviour
         // ロボットが空中にいたらこれ以降処理を読まない
         if (!isGround) { return; }
 
-        this.cameraDirection = Vector3.Scale(rayHitCamera.transform.forward, new Vector3(1, 0, 1)).normalized;              // カメラの方向から、X-Z平面の単位ベクトルを取得 
+        this.cameraDirection = Vector3.Scale(mCamera.transform.forward, new Vector3(1, 0, 1)).normalized;                   // カメラの方向から、X-Z平面の単位ベクトルを取得 
 
         if (horizontal != 0 || vertical != 0)
         {
-            this.moveDirection = (cameraDirection * vertical + rayHitCamera.transform.right * horizontal).normalized;
+            this.moveDirection = (cameraDirection * vertical + mCamera.transform.right * horizontal).normalized;
             transform.rotation = Quaternion.LookRotation(moveDirection);                                                    // キャラクターの向きを進行方向に
             this.moveDirection *= walkSpeed;
             this.AniState = ANIMATION_STATE._WALK_ANIMATION;
@@ -230,18 +232,33 @@ public class PlayerController : MonoBehaviour
             switch(AniState)
             {
                 case ANIMATION_STATE._IDLE_ANIMATION:
-                    animator.SetBool("WALK", false);
-                    animator.SetBool("RUN", false);
+                    InitializeAnimation();
                     break;
                 case ANIMATION_STATE._WALK_ANIMATION:
+                    InitializeAnimation();
                     animator.SetBool("WALK", true);
                     break;
                 case ANIMATION_STATE._RUN_ANIMATION:
+                    InitializeAnimation();
                     animator.SetBool("RUN", true);
+                    break;
+                case ANIMATION_STATE._STOP_ANIMATION:
+                    InitializeAnimation();
+                    animator.SetBool("STOP", true);
                     break;
             }
             this.preAniState = this.AniState;
         }
+    }
+
+    /// <summary>
+    /// アニメーションを初期化
+    /// </summary>
+    void InitializeAnimation()
+    {
+        animator.SetBool("WALK", false);
+        animator.SetBool("RUN", false);
+        animator.SetBool("STOP", false);
     }
 
     /*******************************************************************
@@ -273,6 +290,7 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void StopMove()
     {
+        this.AniState = ANIMATION_STATE._STOP_ANIMATION;        // ロボットを止める処理
         stageMgr._Prefab = null;                                // ロボットの情報をnullにして次のロボットを生成するようにする
         this.lifeTime = 0;                                      // 秒数初期化
         GetComponent<Rigidbody>().isKinematic = true;           // 物理演算の影響を受けないようにする
