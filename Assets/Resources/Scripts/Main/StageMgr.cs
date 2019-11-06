@@ -17,7 +17,7 @@ public class StageMgr : MonoBehaviour
     [SerializeField, Header("ステージUI")]
     private GameObject stageUI;
 
-    //private GameObject startCamera;
+    private GameObject startCamera;
     private GameObject prefab;
     private PlayerController playerController;
     private XboxInput xboxInput;
@@ -27,7 +27,7 @@ public class StageMgr : MonoBehaviour
     void Start ()
     {
         this.xboxInput = new XboxInput();
-        //this.startCamera = GameObject.Find("StartCamera");
+        this.startCamera = GameObject.Find("StartCamera");
 	}
 
     void Update()
@@ -95,10 +95,29 @@ public class StageMgr : MonoBehaviour
         //startCamera.transform.LookAt(prefab.transform.position);
         //var cameraController = startCamera.GetComponent<Camera>();
         //cameraController.depth = 10;
-        if (!GameMgr.IsLock)
-        {
-            Debug.Log("Clear");
-            SceneMgr.NextScene("Select");
-        }
+        //if (!GameMgr.IsLock)
+        //{
+        //    Debug.Log("Clear");
+        //    SceneMgr.NextScene("Select");
+        //}
+
+        StartCoroutine("StageClearProduction");
+    }
+
+    // ステージクリアの演出
+    IEnumerator StageClearProduction()
+    {
+        GameMgr.IsLock = true;              // 入力を受け付けないようにする
+        yield return null;
+        // カメラでキャラクターを捉える
+        startCamera.transform.position = prefab.transform.position + (prefab.transform.forward * 6) + (prefab.transform.up);
+        startCamera.transform.LookAt(prefab.transform.position + new Vector3(0, 1, 0));
+        var cameraController = startCamera.GetComponent<Camera>();
+        cameraController.depth = 10;
+        // クリアアニメーション再生
+        playerController.AniState = PlayerController.ANIMATION_STATE._CLEAR_ANIMATION;
+        yield return new WaitForSeconds(2.0f);
+        // セレクトシーンに移動
+        SceneMgr.NextScene("Select");
     }
 }

@@ -14,12 +14,13 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region 列挙型(enum)
-    enum ANIMATION_STATE    // アニメーションの状態
+    public enum ANIMATION_STATE    // アニメーションの状態
     {
         _IDLE_ANIMATION,
         _WALK_ANIMATION,
         _RUN_ANIMATION,
         _STOP_ANIMATION,
+        _CLEAR_ANIMATION,
     };
 
     enum XBOX_BUTTON        // X_BOXのボタン入力
@@ -49,8 +50,14 @@ public class PlayerController : MonoBehaviour
     private GameObject UI;
     [SerializeField, Header("ロボットのゲージ画像")]
     private GameObject gauge;
+    [SerializeField, Header("色を変えるオブジェクト"), Tooltip("Player/Cube.002")]
+    private GameObject changeColorObj;
     [SerializeField, Header("ジャンプできるか調べるレイヤー")]
     private LayerMask jumpLayerMask;
+    [SerializeField, Header("稼働停止時にサイズを変えるコライダー")]
+    private BoxCollider changeCollider;
+    [SerializeField, Header("稼働停止の際に変えるマテリアル")]
+    private Material[] materials;
     [SerializeField, Header("歩く速度")]
     private float walkSpeed;
     [SerializeField, Header("ロボットの稼働時間の最大値")]
@@ -69,7 +76,7 @@ public class PlayerController : MonoBehaviour
     private Ray ray, upRay;
     private RaycastHit rayHit;
     private Image image;
-    private ANIMATION_STATE AniState, preAniState;
+    private ANIMATION_STATE preAniState;
     private PLAYER_STATE playerState;
     private float horizontal, vertical;
     private float jumpTimer, lifeTime;
@@ -77,6 +84,7 @@ public class PlayerController : MonoBehaviour
     private int MAX_OPERATING_TIME_FPS;
 
     // StageMgr.csで使用 getter, setter
+    public ANIMATION_STATE AniState { get; set; }
     public StageMgr _StageMgr { set { stageMgr = value; } }
     public GameObject _ThirdPersonCamera { get { return thirdPersonCamera; } set { thirdPersonCamera = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
@@ -110,9 +118,9 @@ public class PlayerController : MonoBehaviour
         // Rayを生成
         this.ray = new Ray(transform.position + Vector3.up / 2, transform.forward);
         this.upRay = new Ray(transform.position + Vector3.up * 2, transform.forward);
-        // Rayを視覚的に描画
-        Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
-        Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
+        //// Rayを視覚的に描画
+        //Debug.DrawRay(ray.origin, ray.direction * RAY_LENGTH, Color.blue);
+        //Debug.DrawRay(upRay.origin, upRay.direction * RAY_LENGTH, Color.red);
 
         // ロボットの前方にあるRayがHitし、ロボットの上方にあるRayがHitしていなければ
         if (Physics.Raycast(ray, out rayHit, RAY_LENGTH, jumpLayerMask) && !Physics.Raycast(upRay, RAY_LENGTH))
@@ -139,28 +147,29 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void FixedUpdate()
     {
-        // ロック中ならこれ以降処理を読まない
-        if (GameMgr.IsLock) { return; }
-
-        // ロボットが稼働可能か調べる
-        if (CheckOperating())
+        // ロック中じゃなければ処理を読む
+        if (!GameMgr.IsLock)
         {
-            // 状態に合わせて処理を実行
-            switch (playerState)
+            // ロボットが稼働可能か調べる
+            if (CheckOperating())
             {
-                case PLAYER_STATE._MOVE:
-                    PlayerMove();
-                    break;
-                case PLAYER_STATE._JUMP:
-                    PlayerJumping();
-                    break;
+                // 状態に合わせて処理を実行
+                switch (playerState)
+                {
+                    case PLAYER_STATE._MOVE:
+                        PlayerMove();
+                        break;
+                    case PLAYER_STATE._JUMP:
+                        PlayerJumping();
+                        break;
+                }
             }
-        }
 
-        // 現在ロボットがジャンプしていなかったらジャンプできるか調べる
-        if (playerState != PLAYER_STATE._JUMP)          
-        {
-            CheckJumping();
+            // 現在ロボットがジャンプしていなかったらジャンプできるか調べる
+            if (playerState != PLAYER_STATE._JUMP)
+            {
+                CheckJumping();
+            }
         }
 
         AnimationState();
@@ -246,6 +255,8 @@ public class PlayerController : MonoBehaviour
                     InitializeAnimation();
                     animator.SetBool("STOP", true);
                     break;
+                case ANIMATION_STATE._CLEAR_ANIMATION:
+                    break;
             }
             this.preAniState = this.AniState;
         }
@@ -290,13 +301,16 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void StopMove()
     {
-        this.AniState = ANIMATION_STATE._STOP_ANIMATION;        // ロボットを止める処理
-        stageMgr._Prefab = null;                                // ロボットの情報をnullにして次のロボットを生成するようにする
-        this.lifeTime = 0;                                      // 秒数初期化
-        GetComponent<Rigidbody>().isKinematic = true;           // 物理演算の影響を受けないようにする
-        Destroy(GetComponent<PlayerController>());              // このコンポーネント削除
-        Destroy(UI);                                            // UIを削除
-        Destroy(thirdPersonCamera);                             // カメラを削除
+        this.AniState = ANIMATION_STATE._STOP_ANIMATION;                    // ロボットを止める処理
+        this.stageMgr._Prefab = null;                                       // ロボットの情報をnullにして次のロボットを生成するようにする
+        this.lifeTime = 0;                                                  // 秒数初期化
+        changeCollider.center = new Vector3(0, 0.8f, 0);
+        GetComponent<Rigidbody>().isKinematic = true;                       // 物理演算の影響を受けないようにする
+        var sMeshCon = changeColorObj.GetComponent<SkinnedMeshRenderer>();
+        sMeshCon.materials = materials;                                     // メッシュの色を変える
+        Destroy(GetComponent<PlayerController>());                          // このコンポーネント削除
+        Destroy(UI);                                                        // UIを削除
+        Destroy(thirdPersonCamera);                                         // カメラを削除
     }
 
     /*******************************************************************

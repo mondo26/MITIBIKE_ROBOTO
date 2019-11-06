@@ -11,6 +11,8 @@ public class TestStageMgr : MonoBehaviour
 
     [SerializeField, Header("プレイヤー")]
     private GameObject player;
+    [SerializeField, Header("ロボットの生成場所")]
+    private Vector3 createPos;
 
     //private GameObject startCamera;
     private GameObject prefab;
@@ -59,7 +61,7 @@ public class TestStageMgr : MonoBehaviour
     /// </summary>
     void GenerateRobot()
     {
-        this.prefab = Instantiate(player, new Vector3(10, 5, 0), Quaternion.identity);
+        this.prefab = Instantiate(player, createPos, Quaternion.identity);
         this.playerController = prefab.GetComponent<TestPlayerController>();
         this.playerController._StageMgr = this.gameObject.GetComponent<TestStageMgr>();
         this.playerController._ThirdPersonCamera.SetActive(true);
@@ -75,10 +77,10 @@ public class TestStageMgr : MonoBehaviour
         //startCamera.transform.LookAt(prefab.transform.position);
         //var cameraController = startCamera.GetComponent<Camera>();
         //cameraController.depth = 10;
-        if (!GameMgr.IsLock)
-        {
-            Debug.Log("Clear");
-            SceneMgr.NextScene("Select");
-        }
+        //if (!GameMgr.IsLock)
+        //{
+        //    Debug.Log("Clear");
+        //    SceneMgr.NextScene("Select");
+        //}
     }
 }
