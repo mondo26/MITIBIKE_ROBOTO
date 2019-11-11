@@ -1348,11 +1348,11 @@ MonoBehaviour:
   thirdPersonCamera: {fileID: 1684546759548392}
   UI: {fileID: 1700212306778672}
   gauge: {fileID: 1804788713918194}
-  changeColorObj: {fileID: 1381095872698460}
   jumpLayerMask:
     serializedVersion: 2
     m_Bits: 1280
   changeCollider: {fileID: 65620792615110274}
+  skinRenderer: {fileID: 137205256360169734}
   materials:
   - {fileID: 2100000, guid: 8024c8dce331d44439c98609b166219e, type: 2}
   - {fileID: 2100000, guid: 6ff092a06cbdb874580e784c27fc26c3, type: 2}

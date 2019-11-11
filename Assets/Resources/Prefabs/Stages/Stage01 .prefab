@@ -59989,6 +59989,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1309905471877424, guid: 45322c15ae95e4f41824ce8e0d6450c1, type: 2}
   stageUI: {fileID: 1839262356928778}
+  LookingDownCamera: {fileID: 1222433238028528}
+  createPos: {x: 10, y: 5, z: 0}
 --- !u!114 &114030670489043674
 MonoBehaviour:
   m_ObjectHideFlags: 1

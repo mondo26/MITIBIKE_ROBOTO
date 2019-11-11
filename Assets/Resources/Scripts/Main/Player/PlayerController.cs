@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         _MOVE,
         _JUMP,
+        _STOP,
     };
     #endregion
 
@@ -50,12 +51,12 @@ public class PlayerController : MonoBehaviour
     private GameObject UI;
     [SerializeField, Header("ロボットのゲージ画像")]
     private GameObject gauge;
-    [SerializeField, Header("色を変えるオブジェクト"), Tooltip("Player/Cube.002")]
-    private GameObject changeColorObj;
     [SerializeField, Header("ジャンプできるか調べるレイヤー")]
     private LayerMask jumpLayerMask;
     [SerializeField, Header("稼働停止時にサイズを変えるコライダー")]
     private BoxCollider changeCollider;
+    [SerializeField, Header("稼働停止の際に変えるMesh"), Tooltip("Player/Cube.002")]
+    private SkinnedMeshRenderer skinRenderer;
     [SerializeField, Header("稼働停止の際に変えるマテリアル")]
     private Material[] materials;
     [SerializeField, Header("歩く速度")]
@@ -71,6 +72,7 @@ public class PlayerController : MonoBehaviour
     private XboxInput xboxInput;
     private Rigidbody rigidBody;
     private Animator animator;
+    private AnimatorStateInfo aniStateInfo;
     private Vector3 moveDirection, cameraDirection;
     private Vector3 startPoint, wayPoint, endPoint;
     private Ray ray, upRay;
@@ -150,26 +152,42 @@ public class PlayerController : MonoBehaviour
         // ロック中じゃなければ処理を読む
         if (!GameMgr.IsLock)
         {
-            // ロボットが稼働可能か調べる
-            if (CheckOperating())
-            {
-                // 状態に合わせて処理を実行
-                switch (playerState)
-                {
-                    case PLAYER_STATE._MOVE:
-                        PlayerMove();
-                        break;
-                    case PLAYER_STATE._JUMP:
-                        PlayerJumping();
-                        break;
-                }
-            }
+            //// ロボットが稼働可能か調べる
+            //if (CheckOperating())
+            //{
+            //    // 状態に合わせて処理を実行
+            //    switch (playerState)
+            //    {
+            //        case PLAYER_STATE._MOVE:
+            //            PlayerMove();
+            //            break;
+            //        case PLAYER_STATE._JUMP:
+            //            PlayerJumping();
+            //            break;
+            //    }
+            //}
 
-            // 現在ロボットがジャンプしていなかったらジャンプできるか調べる
-            if (playerState != PLAYER_STATE._JUMP)
+            // ロボットが稼働可能か調べる
+            CheckOperating();
+
+            // 状態に合わせて処理を実行
+            switch (playerState)
             {
-                CheckJumping();
+                case PLAYER_STATE._MOVE:
+                    PlayerMove();
+                    break;
+                case PLAYER_STATE._JUMP:
+                    PlayerJumping();
+                    break;
+                case PLAYER_STATE._STOP:
+                    PlayerStop();
+                    break;
             }
+            //// 現在ロボットがジャンプしていなかったらジャンプできるか調べる
+            //if (playerState != PLAYER_STATE._JUMP)
+            //{
+            //    CheckJumping();
+            //}
         }
 
         AnimationState();
@@ -203,11 +221,13 @@ public class PlayerController : MonoBehaviour
         // Yボタンが押されたらロボットを稼働停止にさせる
         if(xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_Y))
         {
-            StopMove();
+            playerState = PLAYER_STATE._STOP;
             return;
         }
 
         this.rigidBody.velocity = moveDirection * Time.deltaTime;                   // 速度設定
+
+        CheckJumping();                                                             // ジャンプできるか調べる
     }
 
     /*******************************************************************
@@ -231,6 +251,20 @@ public class PlayerController : MonoBehaviour
     }
 
     /*******************************************************************
+     * * 停止の処理  
+     * *****************************************************************/
+    void PlayerStop()
+    {
+        this.AniState = ANIMATION_STATE._STOP_ANIMATION;                    // ロボットを止める処理
+
+        // 稼働停止アニメーションが終了したらロボットを停止する
+        if(EndAnimation("Base Layer.STOP"))
+        {
+            StopMove();         
+        }
+    }
+
+    /*******************************************************************
      * * アニメーションの処理
      * *****************************************************************/
     void AnimationState()
@@ -238,21 +272,20 @@ public class PlayerController : MonoBehaviour
         // 現在流れているanimationが前のアニメーションと違うなら処理
         if(preAniState != AniState)
         {
-            switch(AniState)
+            // アニメーション初期化
+            InitializeAnimation();
+
+            switch (AniState)
             {
                 case ANIMATION_STATE._IDLE_ANIMATION:
-                    InitializeAnimation();
                     break;
                 case ANIMATION_STATE._WALK_ANIMATION:
-                    InitializeAnimation();
                     animator.SetBool("WALK", true);
                     break;
                 case ANIMATION_STATE._RUN_ANIMATION:
-                    InitializeAnimation();
                     animator.SetBool("RUN", true);
                     break;
                 case ANIMATION_STATE._STOP_ANIMATION:
-                    InitializeAnimation();
                     animator.SetBool("STOP", true);
                     break;
                 case ANIMATION_STATE._CLEAR_ANIMATION:
@@ -272,6 +305,24 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("STOP", false);
     }
 
+    /// <summary>
+    /// アニメーションの終了判定
+    /// </summary>
+    bool EndAnimation(string aniName)
+    {
+        this.aniStateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        
+        if (aniStateInfo.fullPathHash == Animator.StringToHash(aniName))
+        {
+            // アニメーションが終了したら、
+            if (aniStateInfo.normalizedTime >= 1.0f)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /*******************************************************************
      * *　ロボットが稼働可能か調べる　TRUE(稼働中)　FALSE(稼働終了)
      * *****************************************************************/
@@ -287,12 +338,13 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
-        // 稼働時間が０でロボットが地面についていれば、活動を停止させる
+        // 稼働時間が０でロボットが地面についていれば、ロボットを停止する
         if (lifeTime <= 0 && isGround)
         {
-            StopMove();         
+            playerState = PLAYER_STATE._STOP;
             return false;
         }
+
         return true;
     }
 
@@ -301,13 +353,11 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void StopMove()
     {
-        this.AniState = ANIMATION_STATE._STOP_ANIMATION;                    // ロボットを止める処理
         this.stageMgr._Prefab = null;                                       // ロボットの情報をnullにして次のロボットを生成するようにする
         this.lifeTime = 0;                                                  // 秒数初期化
         changeCollider.center = new Vector3(0, 0.8f, 0);
         GetComponent<Rigidbody>().isKinematic = true;                       // 物理演算の影響を受けないようにする
-        var sMeshCon = changeColorObj.GetComponent<SkinnedMeshRenderer>();
-        sMeshCon.materials = materials;                                     // メッシュの色を変える
+        skinRenderer.materials = materials;                                 // メッシュの色を変える
         Destroy(GetComponent<PlayerController>());                          // このコンポーネント削除
         Destroy(UI);                                                        // UIを削除
         Destroy(thirdPersonCamera);                                         // カメラを削除

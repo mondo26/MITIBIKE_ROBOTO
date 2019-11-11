@@ -189,7 +189,7 @@ GameObject:
   - component: {fileID: 1134735974}
   m_Layer: 0
   m_Name: StartCamera
-  m_TagString: Untagged
+  m_TagString: StartCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
