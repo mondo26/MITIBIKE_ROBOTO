@@ -16,8 +16,12 @@ public class StageMgr : MonoBehaviour
     private GameObject player;
     [SerializeField, Header("ステージUI")]
     private GameObject stageUI;
+    [SerializeField, Header("見下ろし視点カメラ")]
+    private GameObject LookingDownCamera;
+    [SerializeField, Header("ロボットの生成場所")]
+    private Vector3 createPos;
 
-    //private GameObject startCamera;
+    private GameObject startCamera;
     private GameObject prefab;
     private PlayerController playerController;
     private XboxInput xboxInput;
@@ -27,7 +31,7 @@ public class StageMgr : MonoBehaviour
     void Start ()
     {
         this.xboxInput = new XboxInput();
-        //this.startCamera = GameObject.Find("StartCamera");
+        this.startCamera = GameObject.FindWithTag("StartCamera");
 	}
 
     void Update()
@@ -49,6 +53,8 @@ public class StageMgr : MonoBehaviour
         // Playerが生成されてなく
         else
         {
+            // 見下ろし視点カメラ表示
+            if (!LookingDownCamera.activeSelf) { LookingDownCamera.SetActive(true); }
             // Xボタンを押したらロボット生成
             if (xboxInput.Check(XboxInput.KEYMODE.DOWN, XboxInput.PAD.KEY_X))
             {
@@ -71,10 +77,11 @@ public class StageMgr : MonoBehaviour
     /// </summary>
     void GenerateRobot()
     {
-        this.prefab = Instantiate(player, new Vector3(10, 5, 0), Quaternion.identity);
+        this.prefab = Instantiate(player, createPos, Quaternion.identity);
         this.playerController = prefab.GetComponent<PlayerController>();
         this.playerController._StageMgr = this.gameObject.GetComponent<StageMgr>();
         this.playerController._ThirdPersonCamera.SetActive(true);
+        this.LookingDownCamera.SetActive(false);
     }
 
     /// <summary>
@@ -95,10 +102,30 @@ public class StageMgr : MonoBehaviour
         //startCamera.transform.LookAt(prefab.transform.position);
         //var cameraController = startCamera.GetComponent<Camera>();
         //cameraController.depth = 10;
-        if (!GameMgr.IsLock)
-        {
-            Debug.Log("Clear");
-            SceneMgr.NextScene("Select");
-        }
+        //if (!GameMgr.IsLock)
+        //{
+        //    Debug.Log("Clear");
+        //    SceneMgr.NextScene("Select");
+        //}
+
+        StartCoroutine("StageClearProduction");
+    }
+
+    // ステージクリアの演出
+    IEnumerator StageClearProduction()
+    {
+        GameMgr.IsLock = true;              // 入力を受け付けないようにする
+        SoundMgr.Instance.StopBgm();        // BGMをSTOPさせる
+        yield return null;
+        // カメラでキャラクターを捉える
+        startCamera.transform.position = prefab.transform.position + (prefab.transform.forward * 6) + (prefab.transform.up);
+        startCamera.transform.LookAt(prefab.transform.position + new Vector3(0, 1, 0));
+        var cameraController = startCamera.GetComponent<Camera>();
+        cameraController.depth = 10;
+        // クリアアニメーション再生
+        playerController.AniState = PlayerController.ANIMATION_STATE._STOP_ANIMATION;
+        yield return new WaitForSeconds(2.0f);
+        // セレクトシーンに移動
+        SceneMgr.NextScene("Select");
     }
 }
