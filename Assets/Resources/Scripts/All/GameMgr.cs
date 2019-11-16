@@ -12,7 +12,21 @@ public enum STAGE
     _01,
     _02,
     _03,
+
+    _MAX,
 };
+
+/******************************************************************
+ * * データ
+ * ****************************************************************/
+[System.Serializable]
+public class DATA
+{
+    public bool[] isClear = new bool[(int)STAGE._MAX];
+    public bool[] isPreClear = new bool[(int)STAGE._MAX];
+    public bool[] isStart = new bool[(int)STAGE._MAX];
+}
+
 
 /******************************************************************
  * * ゲームを管理するクラス　(SingletonMonoBehaviourから継承)
@@ -20,13 +34,10 @@ public enum STAGE
 [DisallowMultipleComponent]
 public class GameMgr : SingletonMonoBehaviour<GameMgr>
 {
-    [SerializeField, Header("ステージ")]
-    private List<GameObject> stages;
+    #region 定数
+    private const string KEY = "KEY";
+    #endregion
 
-    private int clearStageData;
-
-    // 静的変数
-    public static bool IsLock { get; set; }             // 処理を止める変数
     #region フレームレート計測に使う変数
     private float m_updateInterval = 0.5f;
     private float m_accum;
@@ -34,6 +45,16 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
     private float m_timeleft;
     private float m_fps;
     #endregion
+
+    [SerializeField, Header("ステージ")]
+    private List<GameObject> stages;
+    [SerializeField, Header("データを破棄するか？")]
+    private bool isDestoryData;
+
+    public DATA Data { get; set; }
+    // 静的変数
+    public static bool IsLock { get; set; }             // 処理を止める変数
+    public static STAGE Stage { get; set; }
 
     /// <summary>
     /// Start 関数の前およびプレハブのインスタンス化直後に呼び出される
@@ -46,6 +67,7 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
             Destroy(gameObject);
             return;
         }
+        CreateData();                                   // データを生成
         DontDestroyOnLoad(gameObject);                  // シーンをまたいでも削除されないようにする
     }
 
@@ -57,9 +79,7 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
         CheckFPS();                                                         // FPSを調べる                                                                    
     }
 
-    /// <summary>
     /// FPSを調べる
-    /// </summary>
     void CheckFPS()
     {
         m_timeleft -= Time.deltaTime;
@@ -74,13 +94,32 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
         m_frames = 0;
     }
 
-    /// <summary>
     /// FPS描画
-    /// </summary>
     void OnGUI()
     {
         GUI.color = Color.red;
         GUILayout.Label("FPS: " + m_fps.ToString("f2"));
+    }
+
+    // データを生成
+    void CreateData()
+    {
+        // データを削除
+        if(isDestoryData)
+        {
+            PlayerPrefsUtils.Reload<DATA>(KEY);
+        }
+
+        // 前回のセーブデータを格納
+        this.Data = PlayerPrefsUtils.GetObject<DATA>(KEY);
+
+        // 前回のセーブデータがなければ新しくデータを生成する
+        if (Data == null)
+        {
+            Debug.LogError("データがありませんでした。データを生成します。");
+            Data = new DATA();
+            PlayerPrefsUtils.SetObject<DATA>(KEY, Data);
+        }
     }
 
     /// <summary>
@@ -89,16 +128,25 @@ public class GameMgr : SingletonMonoBehaviour<GameMgr>
     /// <param name="_stageSelect"></param>
     public void CreateStage(STAGE _stageSelect)
     {
-        switch(_stageSelect)
-        {
-            case STAGE._01:
-                Instantiate(stages[0], Vector3.zero, Quaternion.identity);              // Stageを生成
-                SoundMgr.Instance.PlayBgm("MainBGM");                                   // MainBGM再生
-                break;
-            case STAGE._02:
-                break;
-            case STAGE._03:
-                break;
-        }
+        //switch(_stageSelect)
+        //{
+        //    case STAGE._01:
+        //        Instantiate(stages[0], Vector3.zero, Quaternion.identity);              // Stageを生成
+        //        SoundMgr.Instance.PlayBgm("MainBGM");                                   // MainBGM再生
+        //        break;
+        //    case STAGE._02:
+        //        break;
+        //    case STAGE._03:
+        //        break;
+        //}
+        Instantiate(stages[0], Vector3.zero, Quaternion.identity);              // Stageを生成
+        SoundMgr.Instance.PlayBgm("MainBGM");                                   // MainBGM再生
+    }
+
+    // アプリケーション終了時に呼ばれる
+    void　OnApplicationQuit()
+    {
+        // データを保存する
+        PlayerPrefsUtils.SetObject<DATA>(KEY, Data);
     }
 }

@@ -14,6 +14,7 @@ public class SceneMgr : SingletonMonoBehaviour<SceneMgr>
     private Material fadeMaterial;
     [SerializeField, Header("GameMgr")]
     private GameMgr gameMgr;
+    private AsyncOperation async;
 
     /// <summary>
     ///  Start 関数の前およびプレハブのインスタンス化直後に呼び出される
@@ -60,10 +61,13 @@ public class SceneMgr : SingletonMonoBehaviour<SceneMgr>
             yield return null;
         }
 
-        SceneManager.LoadScene(_sceneName);                     // シーン遷移
-        yield return new WaitForSeconds(1.0f);                  // 1秒間待つ
+        //// シーン遷移
+        async = SceneManager.LoadSceneAsync(_sceneName);
+        while (!async.isDone) { yield return null; }
+        yield return new WaitForSeconds(1.0f);
+        
         // フェードアウト
-        for (float i = 0.2f; i < 1.1f; i += 0.06f)
+        for (float i = 0.0f; i < 1.1f; i += 0.06f)
         {
             fadeMaterial.SetFloat("_Radius", i);
             yield return null;
@@ -88,9 +92,11 @@ public class SceneMgr : SingletonMonoBehaviour<SceneMgr>
             yield return null;
         }
 
-        SceneManager.LoadScene(_sceneName);                     // シーン遷移
-        yield return new WaitForSeconds(1.0f);                  // 1秒間待つ
+        // シーン遷移
+        async = SceneManager.LoadSceneAsync(_sceneName);            
+        while (!async.isDone) { yield return null; }
         gameMgr.CreateStage(_stage);                            // ステージを生成
+        yield return new WaitForSeconds(1.0f);                  // 1秒間待つ
 
         // ワイプを表示する
         for (float i = 0.0f; i < 0.21f; i += 0.01f)

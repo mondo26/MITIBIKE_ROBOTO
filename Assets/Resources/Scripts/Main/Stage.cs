@@ -6,7 +6,7 @@ using UnityEngine.UI;
 /******************************************************************
  * * ステージを管理するクラス
  * ****************************************************************/
-public class StageMgr : MonoBehaviour
+public class Stage : MonoBehaviour
 {
     #region 定数
     private const int SIXTY = 60;
@@ -16,6 +16,8 @@ public class StageMgr : MonoBehaviour
     private GameObject player;
     [SerializeField, Header("ステージUI")]
     private GameObject stageUI;
+    [SerializeField, Header("クリアUI")]
+    private GameObject clearUI;
     [SerializeField, Header("見下ろし視点カメラ")]
     private GameObject LookingDownCamera;
     [SerializeField, Header("ロボットの生成場所")]
@@ -25,6 +27,7 @@ public class StageMgr : MonoBehaviour
     private GameObject prefab;
     private PlayerController playerController;
     private XboxInput xboxInput;
+    private bool isStageClear;
 
     public GameObject _Prefab { set { prefab = value; } }
 
@@ -36,16 +39,22 @@ public class StageMgr : MonoBehaviour
 
     void Update()
     {
-        xboxInput.InputUpdate();        // 入力更新
+        if (Time.timeScale == 0)
+        {
+            xboxInput.Initialize();
+        }
+        else
+        {
+            xboxInput.InputUpdate();        // 入力更新
+        }
     }
 
     void FixedUpdate()
     {
         // ロック中ならこれ以降処理を読まない
         if (GameMgr.IsLock) { return; }
-
         // プレイヤーが生成されていたら
-        if(prefab)
+        if (prefab)
         {
             // 現在ゲーム上にいるロボットの稼働時間を引いていく
             --playerController._LifeTime;
@@ -79,7 +88,7 @@ public class StageMgr : MonoBehaviour
     {
         this.prefab = Instantiate(player, createPos, Quaternion.identity);
         this.playerController = prefab.GetComponent<PlayerController>();
-        this.playerController._StageMgr = this.gameObject.GetComponent<StageMgr>();
+        this.playerController._Stage = this.gameObject.GetComponent<Stage>();
         this.playerController._ThirdPersonCamera.SetActive(true);
         this.LookingDownCamera.SetActive(false);
     }
@@ -89,6 +98,7 @@ public class StageMgr : MonoBehaviour
     /// </summary>
     void ShowingMenu()
     {
+        //Debug.LogError("OK");
         Time.timeScale = 0.0f;
         stageUI.SetActive(true);
     }
@@ -98,17 +108,11 @@ public class StageMgr : MonoBehaviour
     /// </summary>
     public void StageClear()
     {
-        //startCamera.transform.position = prefab.transform.position + (prefab.transform.forward * 10) + (prefab.transform.up * 10);
-        //startCamera.transform.LookAt(prefab.transform.position);
-        //var cameraController = startCamera.GetComponent<Camera>();
-        //cameraController.depth = 10;
-        //if (!GameMgr.IsLock)
-        //{
-        //    Debug.Log("Clear");
-        //    SceneMgr.NextScene("Select");
-        //}
-
-        StartCoroutine("StageClearProduction");
+        if(!isStageClear)
+        {
+            StartCoroutine("StageClearProduction");
+            isStageClear = true;
+        }
     }
 
     // ステージクリアの演出
@@ -118,13 +122,18 @@ public class StageMgr : MonoBehaviour
         SoundMgr.Instance.StopBgm();        // BGMをSTOPさせる
         yield return null;
         // カメラでキャラクターを捉える
-        startCamera.transform.position = prefab.transform.position + (prefab.transform.forward * 6) + (prefab.transform.up);
+        startCamera.transform.position = prefab.transform.position + (prefab.transform.forward * 8) + (prefab.transform.up);
         startCamera.transform.LookAt(prefab.transform.position + new Vector3(0, 1, 0));
         var cameraController = startCamera.GetComponent<Camera>();
         cameraController.depth = 10;
         // クリアアニメーション再生
         playerController.AniState = PlayerController.ANIMATION_STATE._STOP_ANIMATION;
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.0f);
+        // クリアUI表示
+        clearUI.SetActive(true);
+        // ステージクリアflgをTRUE
+        GameMgr.Instance.Data.isClear[(int)GameMgr.Stage] = true;
+        yield return new WaitForSeconds(1.0f);
         // セレクトシーンに移動
         SceneMgr.NextScene("Select");
     }
