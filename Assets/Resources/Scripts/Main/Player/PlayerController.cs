@@ -68,7 +68,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Header("ジャンプ量")]
     private float jumpForce;
 
-    private StageMgr stageMgr;
+    private Stage stage;
     private XboxInput xboxInput;
     private Rigidbody rigidBody;
     private Animator animator;
@@ -87,7 +87,7 @@ public class PlayerController : MonoBehaviour
 
     // StageMgr.csで使用 getter, setter
     public ANIMATION_STATE AniState { get; set; }
-    public StageMgr _StageMgr { set { stageMgr = value; } }
+    public Stage _Stage { set { stage = value; } }
     public GameObject _ThirdPersonCamera { get { return thirdPersonCamera; } set { thirdPersonCamera = value; } }
     public float _LifeTime { get { return lifeTime; } set { lifeTime = value; } }
 
@@ -152,21 +152,6 @@ public class PlayerController : MonoBehaviour
         // ロック中じゃなければ処理を読む
         if (!GameMgr.IsLock)
         {
-            //// ロボットが稼働可能か調べる
-            //if (CheckOperating())
-            //{
-            //    // 状態に合わせて処理を実行
-            //    switch (playerState)
-            //    {
-            //        case PLAYER_STATE._MOVE:
-            //            PlayerMove();
-            //            break;
-            //        case PLAYER_STATE._JUMP:
-            //            PlayerJumping();
-            //            break;
-            //    }
-            //}
-
             // ロボットが稼働可能か調べる
             CheckOperating();
 
@@ -183,11 +168,6 @@ public class PlayerController : MonoBehaviour
                     PlayerStop();
                     break;
             }
-            //// 現在ロボットがジャンプしていなかったらジャンプできるか調べる
-            //if (playerState != PLAYER_STATE._JUMP)
-            //{
-            //    CheckJumping();
-            //}
         }
 
         AnimationState();
@@ -353,7 +333,7 @@ public class PlayerController : MonoBehaviour
      * *****************************************************************/
     void StopMove()
     {
-        this.stageMgr._Prefab = null;                                       // ロボットの情報をnullにして次のロボットを生成するようにする
+        this.stage._Prefab = null;                                       // ロボットの情報をnullにして次のロボットを生成するようにする
         this.lifeTime = 0;                                                  // 秒数初期化
         changeCollider.center = new Vector3(0, 0.8f, 0);
         GetComponent<Rigidbody>().isKinematic = true;                       // 物理演算の影響を受けないようにする
@@ -372,7 +352,7 @@ public class PlayerController : MonoBehaviour
         // クリア処理
         if (other.name == "ClearFlag")
         {
-            this.stageMgr.StageClear();
+            this.stage.StageClear();
         }
     }
 
